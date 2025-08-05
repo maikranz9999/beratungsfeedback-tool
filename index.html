@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Beratungsfeedback</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script defer src="script.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Beratungsfeedback</h1>
+
+  <div class="tabs">
+    <div class="tab-button active" onclick="switchTab('frame')">🧠 Experten-Frame</div>
+    <div class="tab-button" onclick="switchTab('methode')">🛠 Methode</div>
+    <div class="tab-button" onclick="switchTab('beratung')">💬 Beratung</div>
+  </div>
+
+  <label><input type="checkbox" id="onlyFrame"> Nur Experten-Frame bewerten</label>
+
+  <div id="frameTab" class="tab-content active">
+    <label for="frame">🧠 Experten-Frame:</label>
+    <textarea id="frame" placeholder="Was macht dich zur Expert:in?" oninput="updateWordCount('frame')"></textarea>
+    <div class="word-count" id="frameWordCount">Wörter: 0</div>
+    <div id="frameFeedback" class="feedback"></div>
+  </div>
+
+  <div id="methodeTab" class="tab-content">
+    <label for="methode">🛠 Methode:</label>
+    <textarea id="methode" placeholder="Welche Methode hast du erklärt?"></textarea>
+    <div id="methodeFeedback" class="feedback"></div>
+  </div>
+
+  <div id="beratungTab" class="tab-content">
+    <label for="beratung">💬 Beratung:</label>
+    <textarea id="beratung" placeholder="Was wurde dem Kunden empfohlen?"></textarea>
+    <div id="beratungFeedback" class="feedback"></div>
+  </div>
+
+  <button onclick="getFeedback()">Feedback generieren</button>
+</body>
+</html>
