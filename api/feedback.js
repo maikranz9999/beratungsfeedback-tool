@@ -4,25 +4,33 @@ import fetch from "node-fetch";
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { frame } = req.body;
+  const { frame, methode, beratung, onlyFrame } = req.body;
 
   const prompt = `
-Antworte ausschließlich im folgenden JSON-Format:
+Bewerte den folgenden Beratungstext nach festen Kriterien. Antworte ausschließlich im folgenden JSON-Format:
 
 {
-  "frameFeedback": "Dein Feedback zum Expertenframe.",
-  "methodeFeedback": "",
-  "beratungFeedback": ""
+  "frameFeedback": "...",
+  "methodeFeedback": "...",
+  "beratungFeedback": "..."
 }
 
-Hier ist der Expertenframe:
-====================
+Hier ist der Text:
+
+🧠 Experten-Frame:
 ${frame}
-====================
+
+🛠 Methode:
+${methode}
+
+💬 Beratung:
+${beratung}
+
+Wenn nurFrame=true, bewerte nur den Experten-Frame und lasse die anderen Felder leer.
 `;
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "x-api-key": process.env.CLAUDE_API_KEY,
@@ -32,15 +40,17 @@ ${frame}
       body: JSON.stringify({
         model: "claude-3-sonnet-20240229",
         max_tokens: 1000,
-        messages: [{ role: "user", content: prompt }]
+        system: "Du bist ein Bewertungsassistent für Texte. Antworte immer im exakt gültigen JSON-Format. Niemals erklärende Texte davor oder danach.",
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ]
       })
     });
 
-    const data = await response.json();
-
-    // Debug-Ausgabe zur Sicherheit
-    console.log("Claude-Antwort:", JSON.stringify(data, null, 2));
-
+    const data = await claudeResponse.json();
     const text = data?.content?.[0]?.text || "";
 
     const match = text.match(/\{[\s\S]*\}/);
@@ -55,10 +65,10 @@ ${frame}
     const parsed = JSON.parse(match[0]);
 
     return res.status(200).json(parsed);
-  } catch (error) {
-    console.error("Claude API Fehler:", error);
+  } catch (err) {
+    console.error("Claude API Fehler:", err);
     return res.status(500).json({
-      frameFeedback: "Fehler bei der Verarbeitung: " + error.message,
+      frameFeedback: "Fehler bei der Verarbeitung: " + err.message,
       methodeFeedback: "",
       beratungFeedback: ""
     });
