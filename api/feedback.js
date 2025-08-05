@@ -6,9 +6,11 @@ export default async function handler(req, res) {
 
   const { frame } = req.body;
 
-  const prompt = `Antworte im folgenden JSON-Format:
+  const prompt = `
+Antworte ausschließlich im folgenden JSON-Format:
+
 {
-  "frameFeedback": "Hier ist dein Feedback zum Expertenframe.",
+  "frameFeedback": "Dein Feedback zum Expertenframe.",
   "methodeFeedback": "",
   "beratungFeedback": ""
 }
@@ -16,7 +18,8 @@ export default async function handler(req, res) {
 Hier ist der Expertenframe:
 ====================
 ${frame}
-====================`;
+====================
+`;
 
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -34,6 +37,10 @@ ${frame}
     });
 
     const data = await response.json();
+
+    // Debug-Ausgabe zur Sicherheit
+    console.log("Claude-Antwort:", JSON.stringify(data, null, 2));
+
     const text = data?.content?.[0]?.text || "";
 
     const match = text.match(/\{[\s\S]*\}/);
@@ -47,11 +54,11 @@ ${frame}
 
     const parsed = JSON.parse(match[0]);
 
-    res.status(200).json(parsed);
-  } catch (err) {
-    console.error("Fehler:", err);
-    res.status(500).json({
-      frameFeedback: "Fehler bei der Verarbeitung: " + err.message,
+    return res.status(200).json(parsed);
+  } catch (error) {
+    console.error("Claude API Fehler:", error);
+    return res.status(500).json({
+      frameFeedback: "Fehler bei der Verarbeitung: " + error.message,
       methodeFeedback: "",
       beratungFeedback: ""
     });
