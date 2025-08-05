@@ -1,148 +1,119 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Beratungsfeedback</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: 40px auto;
-      padding: 20px;
-      background: #fefefe;
-    }
-    textarea {
-      width: 100%;
-      height: 120px;
-      margin-bottom: 10px;
-      padding: 10px;
-      font-size: 14px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      resize: vertical;
-    }
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 20px;
-    }
-    .feedback {
-      background: #f4f4f4;
-      padding: 10px;
-      margin-top: 5px;
-      border-radius: 5px;
-      border-left: 4px solid #999;
-      white-space: pre-wrap;
-    }
-    button {
-      padding: 10px 20px;
-      margin-top: 20px;
-      font-size: 16px;
-      background-color: #222;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #555;
-    }
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .tab-button {
-      padding: 8px 16px;
-      border: 1px solid #ccc;
-      background-color: #eee;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    .tab-button.active {
-      background-color: #ccc;
-      font-weight: bold;
-    }
-    .tab-content {
-      display: none;
-    }
-    .tab-content.active {
-      display: block;
-    }
-    .word-count {
-      font-size: 12px;
-      color: #666;
-      margin-top: 4px;
-    }
+    :root { --bg:#fefefe; --muted:#666; --line:#ccc; --card:#f4f4f4; --accent:#222; }
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; background: var(--bg); }
+    h1 { margin-top: 0; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .tab-button { padding: 8px 16px; border: 1px solid var(--line); background: #eee; cursor: pointer; border-radius: 6px; }
+    .tab-button.active { background: #ddd; font-weight: bold; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    label { font-weight: bold; display: block; margin: 18px 0 8px; }
+    textarea { width: 100%; height: 140px; padding: 10px; font-size: 14px; border-radius: 6px; border: 1px solid var(--line); resize: vertical; }
+    .word-count { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .feedback { background: var(--card); padding: 12px; margin-top: 8px; border-radius: 8px; border-left: 4px solid #999; white-space: pre-wrap; min-height: 42px; }
+    button { padding: 10px 16px; margin-top: 20px; font-size: 16px; background: var(--accent); color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+    button[disabled] { opacity: .7; cursor: progress; }
   </style>
 </head>
 <body>
   <h1>Beratungsfeedback</h1>
-
   <div class="tabs">
     <div class="tab-button active" onclick="switchTab('frame')">🧠 Experten-Frame</div>
     <div class="tab-button" onclick="switchTab('methode')">🛠 Methode</div>
     <div class="tab-button" onclick="switchTab('beratung')">💬 Beratung</div>
   </div>
 
-  <label><input type="checkbox" id="onlyFrame"> Nur Experten-Frame bewerten</label>
+  <label><input type="checkbox" id="onlyFrame" /> Nur Experten-Frame bewerten</label>
 
   <div id="frameTab" class="tab-content active">
-    <label for="frame">🧠 Experten-Frame:</label>
+    <label for="frame">🧠 Experten-Frame</label>
     <textarea id="frame" placeholder="Was macht dich zur Expert:in?" oninput="updateWordCount('frame')"></textarea>
     <div class="word-count" id="frameWordCount">Wörter: 0</div>
     <div id="frameFeedback" class="feedback"></div>
   </div>
 
   <div id="methodeTab" class="tab-content">
-    <label for="methode">🛠 Methode:</label>
+    <label for="methode">🛠 Methode</label>
     <textarea id="methode" placeholder="Welche Methode hast du erklärt?"></textarea>
     <div id="methodeFeedback" class="feedback"></div>
   </div>
 
   <div id="beratungTab" class="tab-content">
-    <label for="beratung">💬 Beratung:</label>
+    <label for="beratung">💬 Beratung</label>
     <textarea id="beratung" placeholder="Was wurde dem Kunden empfohlen?"></textarea>
     <div id="beratungFeedback" class="feedback"></div>
   </div>
 
-  <button onclick="getFeedback()">Feedback generieren</button>
+  <button id="submitBtn" onclick="getFeedback()">Feedback generieren</button>
 
   <script>
     function switchTab(tab) {
-      const buttons = document.querySelectorAll('.tab-button');
-      const contents = document.querySelectorAll('.tab-content');
-      buttons.forEach(btn => btn.classList.remove('active'));
-      contents.forEach(cont => cont.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
       document.querySelector(`.tab-button[onclick="switchTab('${tab}')"]`).classList.add('active');
       document.getElementById(tab + 'Tab').classList.add('active');
     }
 
     function updateWordCount(id) {
-      const text = document.getElementById(id).value;
-      const words = text.trim().split(/\s+/).filter(Boolean);
+      const words = (document.getElementById(id).value || '').trim().split(/\s+/).filter(Boolean);
       document.getElementById(id + 'WordCount').innerText = `Wörter: ${words.length}`;
     }
 
     async function getFeedback() {
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true; btn.textContent = 'Wird bewertet…';
+
       const payload = {
-        frame: document.getElementById("frame").value,
-        methode: document.getElementById("methode").value,
-        beratung: document.getElementById("beratung").value,
-        onlyFrame: document.getElementById("onlyFrame").checked
+        frame: document.getElementById('frame').value,
+        methode: document.getElementById('methode').value,
+        beratung: document.getElementById('beratung').value,
+        onlyFrame: document.getElementById('onlyFrame').checked
       };
 
-      const response = await fetch("/api/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+      const setFeedback = (id, text) => document.getElementById(id).innerText = text || '';
+      setFeedback('frameFeedback', '');
+      setFeedback('methodeFeedback', '');
+      setFeedback('beratungFeedback', '');
 
-      const result = await response.json();
+      try {
+        const resp = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-      document.getElementById("frameFeedback").innerText = result.frameFeedback || "Keine Rückmeldung.";
-      document.getElementById("methodeFeedback").innerText = result.methodeFeedback || "Keine Rückmeldung.";
-      document.getElementById("beratungFeedback").innerText = result.beratungFeedback || "Keine Rückmeldung.";
+        const raw = await resp.text();
+        console.log('HTTP', resp.status, resp.statusText);
+        console.log('RAW', raw);
+
+        if (!resp.ok) {
+          setFeedback('frameFeedback', `Serverfehler ${resp.status}: ${raw}`);
+          return;
+        }
+
+        let result;
+        try {
+          result = JSON.parse(raw);
+        } catch (err) {
+          setFeedback('frameFeedback', 'Antwort war kein gültiges JSON.');
+          return;
+        }
+
+        setFeedback('frameFeedback', result.frameFeedback || 'Keine Rückmeldung.');
+        setFeedback('methodeFeedback', result.methodeFeedback || '');
+        setFeedback('beratungFeedback', result.beratungFeedback || '');
+      } catch (err) {
+        console.error('Fetch error:', err);
+        setFeedback('frameFeedback', 'Netzwerkfehler: ' + (err.message || err));
+      } finally {
+        btn.disabled = false; btn.textContent = 'Feedback generieren';
+      }
     }
   </script>
 </body>
