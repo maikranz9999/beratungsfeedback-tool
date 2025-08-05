@@ -6,32 +6,17 @@ export default async function handler(req, res) {
 
   const { frame } = req.body;
 
-  const prompt = `
-Du bewertest den folgenden Text, genannt „Expertenframe“, nach festen Kriterien für ein Beratungsgespräch mit Hochzeitsdienstleistern. 
-
-Antworte ausschließlich in folgendem JSON-Format:
-
+  const prompt = `Antworte im folgenden JSON-Format:
 {
-  "frameFeedback": "Konkretes, wohlwollendes Feedback zum Expertenframe.",
+  "frameFeedback": "Hier ist dein Feedback zum Expertenframe.",
   "methodeFeedback": "",
   "beratungFeedback": ""
 }
 
-Bewerte die folgenden Kriterien:
-- Länge (500–800 Wörter)
-- Storytelling statt Aufzählung
-- keine chronologische Biografie
-- Experten-Merkmale (klare Meinung, Gamechanger-Strategien etc.)
-- natürlicher Ton (wie gesprochen)
-- auch negative Erfahrungen enthalten
-- keine Romantisierung
-- keine überflüssigen Einleitungen
-
 Hier ist der Expertenframe:
 ====================
 ${frame}
-====================
-`;
+====================`;
 
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -49,17 +34,9 @@ ${frame}
     });
 
     const data = await response.json();
+    const text = data?.content?.[0]?.text || "";
 
-    const raw = data?.content?.[0]?.text;
-    if (!raw) {
-      return res.status(500).json({
-        frameFeedback: "Claude hat keine Antwort geliefert.",
-        methodeFeedback: "",
-        beratungFeedback: ""
-      });
-    }
-
-    const match = raw.match(/\{[\s\S]*\}/);
+    const match = text.match(/\{[\s\S]*\}/);
     if (!match) {
       return res.status(500).json({
         frameFeedback: "Claude hat kein gültiges JSON geliefert.",
@@ -70,15 +47,11 @@ ${frame}
 
     const parsed = JSON.parse(match[0]);
 
-    res.status(200).json({
-      frameFeedback: parsed.frameFeedback || "Keine Rückmeldung.",
-      methodeFeedback: parsed.methodeFeedback || "",
-      beratungFeedback: parsed.beratungFeedback || ""
-    });
-  } catch (error) {
-    console.error("Claude API Fehler:", error);
+    res.status(200).json(parsed);
+  } catch (err) {
+    console.error("Fehler:", err);
     res.status(500).json({
-      frameFeedback: "Fehler bei der Verarbeitung: " + error.message,
+      frameFeedback: "Fehler bei der Verarbeitung: " + err.message,
       methodeFeedback: "",
       beratungFeedback: ""
     });
