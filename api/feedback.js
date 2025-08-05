@@ -118,11 +118,18 @@ Antworte NUR als JSON:
     let parsed;
     try {
       const claudeResponse = JSON.parse(rawText);
-      const content = claudeResponse.content?.[0]?.text || rawText;
+      
+      // Claude gibt das JSON in einem verschachtelten Format zurück
+      let content;
+      if (claudeResponse.content && claudeResponse.content[0] && claudeResponse.content[0].text) {
+        content = claudeResponse.content[0].text;
+      } else {
+        content = rawText;
+      }
       
       console.log("Claude Content:", content.substring(0, 300) + "...");
       
-      // Versuche JSON aus dem Inhalt zu extrahieren - robustere Methode
+      // Versuche JSON aus dem Inhalt zu extrahieren
       let jsonStr = content;
       
       // Falls der Content nicht direkt JSON ist, versuche es zu finden
@@ -141,9 +148,9 @@ Antworte NUR als JSON:
       console.error("JSON Parse Fehler:", parseError);
       console.error("Raw content:", rawText.substring(0, 1000));
       
-      // Fallback: Einfaches Text-Feedback zurückgeben
+      // Fallback: Rohtext als Feedback anzeigen  
       return res.status(200).json({
-        frameFeedback: "Technischer Fehler beim Parsen der Antwort. Hier ist die Roh-Antwort:\n\n" + rawText.substring(0, 2000),
+        frameFeedback: "Debug Info:\n\n" + rawText.substring(0, 2000),
         methodeFeedback: "",
         beratungFeedback: ""
       });
