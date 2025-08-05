@@ -370,24 +370,6 @@
       }, 5000);
     }
 
-    function setFeedback(id, text, isError = false) {
-      const element = document.getElementById(id);
-      
-      if (text && text.includes('1. Länge:')) {
-        // Strukturiertes Feedback in schöne Boxen umwandeln
-        element.innerHTML = formatStructuredFeedback(text);
-        element.className = 'feedback';
-      } else if (text && text.includes('<div class="feedback-container">')) {
-        // HTML-Feedback anzeigen
-        element.innerHTML = text;
-        element.className = 'feedback';
-      } else {
-        // Text-Feedback anzeigen  
-        element.textContent = text || '';
-        element.className = `feedback ${isError ? 'error' : ''}`;
-      }
-    }
-
     function formatStructuredFeedback(text) {
       const requirements = [
         'Länge: 500-800 Wörter',
@@ -414,9 +396,24 @@
           html += `
             <div class="requirement-box ${status}">
               <div class="requirement-title">${statusIcon} ${index + 1}. ${requirements[index]}</div>
-              <div class="requirement-content">${section.replace(/STATUS:|BEGRÜNDUNG:|ZITATE:|VERBESSERUNG:/g, '<strong>    function setFeedback(id, text, isError = false) {
+              <div class="requirement-content">${section.replace(/STATUS:|BEGRÜNDUNG:|ZITATE:|VERBESSERUNG:/g, '<strong>$&</strong>')}</div>
+            </div>
+          `;
+        }
+      });
+      
+      html += '</div>';
+      return html;
+    }
+
+    function setFeedback(id, text, isError = false) {
       const element = document.getElementById(id);
-      if (text && text.includes('<div class="feedback-container">')) {
+      
+      if (text && text.includes('1. Länge:')) {
+        // Strukturiertes Feedback in schöne Boxen umwandeln
+        element.innerHTML = formatStructuredFeedback(text);
+        element.className = 'feedback';
+      } else if (text && text.includes('<div class="feedback-container">')) {
         // HTML-Feedback anzeigen
         element.innerHTML = text;
         element.className = 'feedback';
@@ -425,14 +422,6 @@
         element.textContent = text || '';
         element.className = `feedback ${isError ? 'error' : ''}`;
       }
-    }</strong>')}</div>
-            </div>
-          `;
-        }
-      });
-      
-      html += '</div>';
-      return html;
     }
 
     async function getFeedback() {
