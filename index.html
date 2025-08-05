@@ -372,6 +372,50 @@
 
     function setFeedback(id, text, isError = false) {
       const element = document.getElementById(id);
+      
+      if (text && text.includes('1. Länge:')) {
+        // Strukturiertes Feedback in schöne Boxen umwandeln
+        element.innerHTML = formatStructuredFeedback(text);
+        element.className = 'feedback';
+      } else if (text && text.includes('<div class="feedback-container">')) {
+        // HTML-Feedback anzeigen
+        element.innerHTML = text;
+        element.className = 'feedback';
+      } else {
+        // Text-Feedback anzeigen  
+        element.textContent = text || '';
+        element.className = `feedback ${isError ? 'error' : ''}`;
+      }
+    }
+
+    function formatStructuredFeedback(text) {
+      const requirements = [
+        'Länge: 500-800 Wörter',
+        'Storytelling statt oberflächlicher Aufzählung', 
+        'Keine chronologische Erzählung des Werdegangs',
+        'Begründung der Expertise mit Experten-Merkmalen',
+        'Natürlicher Gesprächston (gesprochenes Wort)',
+        'Integration negativer Erfahrungen/Learnings',
+        'Professionelle Tonalität ohne Romantisierung',
+        'Keine überflüssigen Frames oder Ankündigungen'
+      ];
+
+      let html = '<div class="feedback-container">';
+      
+      const sections = text.split(/\d+\.\s+/).filter(Boolean);
+      
+      sections.forEach((section, index) => {
+        if (index < requirements.length) {
+          const status = section.includes('ERFÜLLT') && !section.includes('NICHT_ERFÜLLT') ? 'green' : 
+                       section.includes('TEILWEISE') ? 'yellow' : 'red';
+          
+          const statusIcon = status === 'green' ? '✅' : status === 'yellow' ? '⚠️' : '❌';
+          
+          html += `
+            <div class="requirement-box ${status}">
+              <div class="requirement-title">${statusIcon} ${index + 1}. ${requirements[index]}</div>
+              <div class="requirement-content">${section.replace(/STATUS:|BEGRÜNDUNG:|ZITATE:|VERBESSERUNG:/g, '<strong>    function setFeedback(id, text, isError = false) {
+      const element = document.getElementById(id);
       if (text && text.includes('<div class="feedback-container">')) {
         // HTML-Feedback anzeigen
         element.innerHTML = text;
@@ -381,6 +425,14 @@
         element.textContent = text || '';
         element.className = `feedback ${isError ? 'error' : ''}`;
       }
+    }</strong>')}</div>
+            </div>
+          `;
+        }
+      });
+      
+      html += '</div>';
+      return html;
     }
 
     async function getFeedback() {
