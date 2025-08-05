@@ -139,7 +139,6 @@
       background: #f8d7da;
     }
 
-    /* Feedback Box Styles */
     .feedback-container {
       display: flex;
       flex-direction: column;
@@ -331,7 +330,7 @@
     <div id="beratungFeedback" class="feedback"></div>
   </div>
 
-  <button id="submitBtn" onclick="getFeedback()">
+  <button id="submitBtn">
     <span id="buttonText">Feedback generieren</span>
   </button>
 
@@ -341,7 +340,7 @@
     function switchTab(tab) {
       document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-      document.querySelector(`.tab-button[onclick="switchTab('${tab}')"]`).classList.add('active');
+      document.querySelector('.tab-button[onclick="switchTab(\'' + tab + '\')"]').classList.add('active');
       document.getElementById(tab + 'Tab').classList.add('active');
     }
 
@@ -357,31 +356,18 @@
         else status = ' (optimal)';
       }
       
-      document.getElementById(id + 'WordCount').innerText = `Wörter: ${count}${status}`;
+      document.getElementById(id + 'WordCount').innerText = 'Wörter: ' + count + status;
     }
 
-    function showStatus(message, type = 'success') {
+    function showStatus(message, type) {
+      type = type || 'success';
       const statusEl = document.getElementById('statusMessage');
       statusEl.textContent = message;
-      statusEl.className = `status-message show ${type}`;
+      statusEl.className = 'status-message show ' + type;
       
-      setTimeout(() => {
+      setTimeout(function() {
         statusEl.classList.remove('show');
       }, 5000);
-    }
-
-    function formatStructuredFeedback(feedbackObj) {
-      // Falls es ein String ist, verwende die alte Methode
-      if (typeof feedbackObj === 'string') {
-        return formatStructuredFeedbackFromString(feedbackObj);
-      }
-      
-      // Falls es ein Objekt ist, verarbeite das neue Format
-      if (typeof feedbackObj === 'object' && feedbackObj !== null) {
-        return formatStructuredFeedbackFromObject(feedbackObj);
-      }
-      
-      return `<div>Unbekanntes Feedback-Format: ${JSON.stringify(feedbackObj)}</div>`;
     }
 
     function formatStructuredFeedbackFromObject(feedbackObj) {
@@ -398,7 +384,7 @@
 
       let html = '<div class="feedback-container">';
 
-      requirements.forEach((req, index) => {
+      requirements.forEach(function(req, index) {
         const feedback = feedbackObj[req.key];
         if (feedback) {
           const status = feedback.status === 'ERFÜLLT' ? 'green' : 
@@ -406,31 +392,27 @@
           
           const statusIcon = status === 'green' ? '✅' : status === 'yellow' ? '⚠️' : '❌';
           
-          html += `
-            <div class="requirement-box ${status}">
-              <div class="requirement-title">${statusIcon} ${index + 1}. ${req.title}</div>
-              <div class="requirement-content">
-                <strong>STATUS:</strong> ${feedback.status}<br>
-                <strong>BEGRÜNDUNG:</strong> ${feedback.begruendung}<br>
-          `;
+          html += '<div class="requirement-box ' + status + '">';
+          html += '<div class="requirement-title">' + statusIcon + ' ' + (index + 1) + '. ' + req.title + '</div>';
+          html += '<div class="requirement-content">';
+          html += '<strong>STATUS:</strong> ' + feedback.status + '<br>';
+          html += '<strong>BEGRÜNDUNG:</strong> ' + feedback.begruendung + '<br>';
           
           if (feedback.zitate && feedback.zitate.length > 0) {
-            html += `<strong>ZITATE:</strong><br>`;
-            feedback.zitate.forEach(zitat => {
-              html += `<div class="quote">"${zitat}"</div>`;
+            html += '<strong>ZITATE:</strong><br>';
+            feedback.zitate.forEach(function(zitat) {
+              html += '<div class="quote">"' + zitat + '"</div>';
             });
           }
           
           if (feedback.verbesserung && feedback.verbesserung.trim() !== '') {
-            html += `
-              <div class="improvement">
-                <div class="improvement-title">VERBESSERUNG:</div>
-                ${feedback.verbesserung}
-              </div>
-            `;
+            html += '<div class="improvement">';
+            html += '<div class="improvement-title">VERBESSERUNG:</div>';
+            html += feedback.verbesserung;
+            html += '</div>';
           }
           
-          html += `</div></div>`;
+          html += '</div></div>';
         }
       });
 
@@ -451,56 +433,19 @@
       ];
 
       let html = '<div class="feedback-container">';
-      
       const sections = text.split(/\d+\.\s+/).filter(Boolean);
       
-      sections.forEach((section, index) => {
+      sections.forEach(function(section, index) {
         if (index < requirements.length) {
           const status = section.includes('ERFÜLLT') && !section.includes('NICHT_ERFÜLLT') ? 'green' : 
                        section.includes('TEILWEISE') ? 'yellow' : 'red';
           
           const statusIcon = status === 'green' ? '✅' : status === 'yellow' ? '⚠️' : '❌';
           
-          html += `
-            <div class="requirement-box ${status}">
-              <div class="requirement-title">${statusIcon} ${index + 1}. ${requirements[index]}</div>
-              <div class="requirement-content">${section.replace(/STATUS:|BEGRÜNDUNG:|ZITATE:|VERBESSERUNG:/g, '<strong>    function formatStructuredFeedback(text) {
-      const requirements = [
-        'Länge: 500-800 Wörter',
-        'Storytelling statt oberflächlicher Aufzählung', 
-        'Keine chronologische Erzählung des Werdegangs',
-        'Begründung der Expertise mit Experten-Merkmalen',
-        'Natürlicher Gesprächston (gesprochenes Wort)',
-        'Integration negativer Erfahrungen/Learnings',
-        'Professionelle Tonalität ohne Romantisierung',
-        'Keine überflüssigen Frames oder Ankündigungen'
-      ];
-
-      let html = '<div class="feedback-container">';
-      
-      const sections = text.split(/\d+\.\s+/).filter(Boolean);
-      
-      sections.forEach((section, index) => {
-        if (index < requirements.length) {
-          const status = section.includes('ERFÜLLT') && !section.includes('NICHT_ERFÜLLT') ? 'green' : 
-                       section.includes('TEILWEISE') ? 'yellow' : 'red';
-          
-          const statusIcon = status === 'green' ? '✅' : status === 'yellow' ? '⚠️' : '❌';
-          
-          html += `
-            <div class="requirement-box ${status}">
-              <div class="requirement-title">${statusIcon} ${index + 1}. ${requirements[index]}</div>
-              <div class="requirement-content">${section.replace(/STATUS:|BEGRÜNDUNG:|ZITATE:|VERBESSERUNG:/g, '<strong>$&</strong>')}</div>
-            </div>
-          `;
-        }
-      });
-      
-      html += '</div>';
-      return html;
-    }</strong>')}</div>
-            </div>
-          `;
+          html += '<div class="requirement-box ' + status + '">';
+          html += '<div class="requirement-title">' + statusIcon + ' ' + (index + 1) + '. ' + requirements[index] + '</div>';
+          html += '<div class="requirement-content">' + section.replace(/STATUS:|BEGRÜNDUNG:|ZITATE:|VERBESSERUNG:/g, '<strong>$&</strong>') + '</div>';
+          html += '</div>';
         }
       });
       
@@ -508,11 +453,23 @@
       return html;
     }
 
-    function setFeedback(id, text, isError = false) {
-      const element = document.getElementById(id);
+    function formatStructuredFeedback(feedbackObj) {
+      if (typeof feedbackObj === 'string') {
+        return formatStructuredFeedbackFromString(feedbackObj);
+      }
       
-      // Debug-Ausgabe
-      console.log('setFeedback called with:', { id, textType: typeof text, text });
+      if (typeof feedbackObj === 'object' && feedbackObj !== null) {
+        return formatStructuredFeedbackFromObject(feedbackObj);
+      }
+      
+      return '<div>Unbekanntes Feedback-Format: ' + JSON.stringify(feedbackObj) + '</div>';
+    }
+
+    function setFeedback(id, text, isError) {
+      const element = document.getElementById(id);
+      isError = isError || false;
+      
+      console.log('setFeedback called with:', { id: id, textType: typeof text, text: text });
       
       if (!text) {
         element.textContent = 'Kein Feedback erhalten.';
@@ -520,48 +477,40 @@
         return;
       }
       
-      // Wenn es ein Objekt ist (neues Format von Claude)
       if (typeof text === 'object') {
         element.innerHTML = formatStructuredFeedback(text);
         element.className = 'feedback';
         return;
       }
       
-      // Sicherstellen, dass text ein String ist
       const textStr = String(text);
       
       if (textStr.includes('1. Länge:')) {
-        // Strukturiertes Feedback in schöne Boxen umwandeln
         element.innerHTML = formatStructuredFeedback(textStr);
         element.className = 'feedback';
       } else if (textStr.includes('<div class="feedback-container">')) {
-        // HTML-Feedback anzeigen
         element.innerHTML = textStr;
         element.className = 'feedback';
       } else {
-        // Text-Feedback anzeigen  
         element.textContent = textStr || 'Kein Feedback erhalten.';
-        element.className = `feedback ${isError ? 'error' : ''}`;
+        element.className = 'feedback' + (isError ? ' error' : '');
       }
     }
 
-    async function getFeedback() {
+    function getFeedback() {
       const btn = document.getElementById('submitBtn');
       const buttonText = document.getElementById('buttonText');
       const originalText = buttonText.textContent;
       
-      // Validation
       const frameText = document.getElementById('frame').value.trim();
       if (!frameText) {
         showStatus('Bitte geben Sie einen Experten-Frame ein.', 'error');
         return;
       }
 
-      // UI Updates
       btn.disabled = true;
       buttonText.innerHTML = '<span class="loading"></span>Wird bewertet...';
       
-      // Clear previous feedback
       setFeedback('frameFeedback', '');
       setFeedback('methodeFeedback', '');
       setFeedback('beratungFeedback', '');
@@ -573,56 +522,56 @@
         onlyFrame: document.getElementById('onlyFrame').checked
       };
 
-      try {
-        const response = await fetch('/api/feedback', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+      fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(function(response) {
+        return response.text().then(function(rawText) {
+          console.log('Response status:', response.status);
+          console.log('Response text:', rawText);
+
+          let result;
+          try {
+            result = JSON.parse(rawText);
+          } catch (parseError) {
+            console.error('JSON Parse Error:', parseError);
+            console.error('Raw response:', rawText);
+            setFeedback('frameFeedback', 'JSON Parse Fehler:\n\nRoh-Antwort:\n' + rawText.substring(0, 1000), true);
+            return;
+          }
+
+          if (!response.ok) {
+            const errorMsg = result.frameFeedback || result.error || ('Server-Fehler ' + response.status);
+            setFeedback('frameFeedback', errorMsg, true);
+            showStatus('Fehler beim Generieren des Feedbacks', 'error');
+            return;
+          }
+
+          setFeedback('frameFeedback', result.frameFeedback || 'Keine Rückmeldung erhalten.');
+          if (!payload.onlyFrame) {
+            setFeedback('methodeFeedback', result.methodeFeedback || '');
+            setFeedback('beratungFeedback', result.beratungFeedback || '');
+          }
+          
+          showStatus('Feedback erfolgreich generiert!', 'success');
         });
-
-        const rawText = await response.text();
-        console.log('Response status:', response.status);
-        console.log('Response text:', rawText);
-
-        let result;
-        try {
-          result = JSON.parse(rawText);
-        } catch (parseError) {
-          console.error('JSON Parse Error:', parseError);
-          console.error('Raw response:', rawText);
-          setFeedback('frameFeedback', `JSON Parse Fehler:\n\nRoh-Antwort:\n${rawText.substring(0, 1000)}`, true);
-          return;
-        }
-
-        if (!response.ok) {
-          const errorMsg = result.frameFeedback || result.error || `Server-Fehler ${response.status}`;
-          setFeedback('frameFeedback', errorMsg, true);
-          showStatus('Fehler beim Generieren des Feedbacks', 'error');
-          return;
-        }
-
-        // Success - Sicherstellen, dass alle Werte Strings sind
-        setFeedback('frameFeedback', result.frameFeedback || 'Keine Rückmeldung erhalten.');
-        if (!payload.onlyFrame) {
-          setFeedback('methodeFeedback', result.methodeFeedback || '');
-          setFeedback('beratungFeedback', result.beratungFeedback || '');
-        }
-        
-        showStatus('Feedback erfolgreich generiert!', 'success');
-
-      } catch (error) {
+      })
+      .catch(function(error) {
         console.error('Fetch error:', error);
-        setFeedback('frameFeedback', `Netzwerkfehler: ${error.message}`, true);
+        setFeedback('frameFeedback', 'Netzwerkfehler: ' + error.message, true);
         showStatus('Verbindungsfehler. Bitte versuchen Sie es erneut.', 'error');
-      } finally {
+      })
+      .finally(function() {
         btn.disabled = false;
         buttonText.textContent = originalText;
-      }
+      });
     }
 
-    // Initialize word count on page load
     document.addEventListener('DOMContentLoaded', function() {
       updateWordCount('frame');
+      document.getElementById('submitBtn').addEventListener('click', getFeedback);
     });
   </script>
 </body>
