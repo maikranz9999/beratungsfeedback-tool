@@ -409,17 +409,20 @@
     function setFeedback(id, text, isError = false) {
       const element = document.getElementById(id);
       
-      if (text && text.includes('1. Länge:')) {
+      // Sicherstellen, dass text ein String ist
+      const textStr = text ? String(text) : '';
+      
+      if (textStr && textStr.includes('1. Länge:')) {
         // Strukturiertes Feedback in schöne Boxen umwandeln
-        element.innerHTML = formatStructuredFeedback(text);
+        element.innerHTML = formatStructuredFeedback(textStr);
         element.className = 'feedback';
-      } else if (text && text.includes('<div class="feedback-container">')) {
+      } else if (textStr && textStr.includes('<div class="feedback-container">')) {
         // HTML-Feedback anzeigen
-        element.innerHTML = text;
+        element.innerHTML = textStr;
         element.className = 'feedback';
       } else {
         // Text-Feedback anzeigen  
-        element.textContent = text || '';
+        element.textContent = textStr || 'Kein Feedback erhalten.';
         element.className = `feedback ${isError ? 'error' : ''}`;
       }
     }
@@ -468,17 +471,19 @@
           result = JSON.parse(rawText);
         } catch (parseError) {
           console.error('JSON Parse Error:', parseError);
-          setFeedback('frameFeedback', `Antwort war kein gültiges JSON: ${rawText}`, true);
+          console.error('Raw response:', rawText);
+          setFeedback('frameFeedback', `JSON Parse Fehler:\n\nRoh-Antwort:\n${rawText.substring(0, 1000)}`, true);
           return;
         }
 
         if (!response.ok) {
-          setFeedback('frameFeedback', result.frameFeedback || `Server-Fehler ${response.status}`, true);
+          const errorMsg = result.frameFeedback || result.error || `Server-Fehler ${response.status}`;
+          setFeedback('frameFeedback', errorMsg, true);
           showStatus('Fehler beim Generieren des Feedbacks', 'error');
           return;
         }
 
-        // Success
+        // Success - Sicherstellen, dass alle Werte Strings sind
         setFeedback('frameFeedback', result.frameFeedback || 'Keine Rückmeldung erhalten.');
         if (!payload.onlyFrame) {
           setFeedback('methodeFeedback', result.methodeFeedback || '');
