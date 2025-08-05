@@ -23,35 +23,81 @@ export default async function handler(req, res) {
     });
   }
 
-  // Bewertungskriterien aus Ihrer PDF laden
+  // Detaillierte Bewertungskriterien mit strukturiertem Feedback
   const evaluationCriteria = `
-EXPERTENFRAME-BEWERTUNG
+Du bewertest Experten-Frames basierend auf 8 Muss-Anforderungen. 
 
-Bewerte basierend auf folgenden Muss-Anforderungen:
+Für jede Anforderung erstellst du eine farbige Box:
+- GRÜN (✅): Anforderung voll erfüllt
+- GELB (⚠️): Anforderung erfüllt, aber verbesserungsfähig  
+- ROT (❌): Anforderung nicht oder nur teilweise erfüllt
 
-1. Länge: 500-800 Wörter
-2. Storytelling statt oberflächlicher Aufzählung (1-3 detaillierte Stories)
-3. Keine chronologische Erzählung des Werdegangs
-4. Begründung der Expertise mit Experten-Merkmalen
-5. Natürlicher Gesprächston (gesprochenes Wort)
-6. Integration negativer Erfahrungen/Learnings
-7. Professionelle Tonalität ohne Romantisierung
-8. Keine überflüssigen Frames oder Ankündigungen
+STRUKTUR für jede Box:
+1. Anforderung (immer gleiche Bezeichnung)
+2. Status-Bewertung mit Begründung
+3. Konkrete Zitate aus dem Text als Belege
+4. Bei Gelb/Rot: Spezifische Verbesserungsvorschläge mit Positiv-Beispielen
 
-Format der Antwort als JSON:
-{
-  "frameFeedback": "EXPERTENFRAME-BEWERTUNG\\nWortanzahl: [X] Wörter\\n\\nErfüllte Anforderungen:\\n✅ [Liste]\\n\\nNicht erfüllte Anforderungen:\\n❌ [Details]",
-  "methodeFeedback": "...",
-  "beratungFeedback": "..."
-}
+Die 8 Anforderungen:
+
+1. **Länge: 500-800 Wörter** 
+   - Grün: 500-800 Wörter
+   - Gelb: 400-499 oder 801-900 Wörter  
+   - Rot: unter 400 oder über 900 Wörter
+
+2. **Storytelling statt oberflächlicher Aufzählung**
+   - Grün: 1-3 detaillierte Stories mit klaren Situationsbeschreibungen
+   - Gelb: Stories vorhanden, aber noch zu oberflächlich
+   - Rot: Nur Aufzählungen ohne echte Stories
+
+3. **Keine chronologische Erzählung des Werdegangs**
+   - Grün: Spezifische Momente/Situationen werden herausgepickt
+   - Gelb: Teilweise chronologisch, aber auch spezifische Momente
+   - Rot: Rein chronologische Abarbeitung des Werdegangs
+
+4. **Begründung der Expertise mit Experten-Merkmalen**
+   - Experten-Merkmale: Klare Meinung, selbstbewusstes Sprechen, Gamechanger-Strategien, Status Quo hinterfragen, gegen den Strom schwimmen
+   - Grün: Mehrere Experten-Merkmale klar erkennbar
+   - Gelb: Einige Experten-Merkmale vorhanden
+   - Rot: Kaum echte Experten-Merkmale erkennbar
+
+5. **Natürlicher Gesprächston (gesprochenes Wort)**
+   - Grün: Klingt wie natürliche Unterhaltung
+   - Gelb: Überwiegend natürlich, aber teilweise zu geschrieben
+   - Rot: Zu geleckt/geschrieben, nicht wie gesprochenes Wort
+
+6. **Integration negativer Erfahrungen/Learnings**
+   - Grün: Negative Erfahrungen werden als Lernmomente genutzt
+   - Gelb: Negative Aspekte erwähnt, aber Lerneffekt nicht klar
+   - Rot: Keine negativen Erfahrungen/Learnings erwähnt
+
+7. **Professionelle Tonalität ohne Romantisierung**
+   - Grün: Professionell ohne Fanatismus oder Romantisierung
+   - Gelb: Überwiegend professionell, aber teilweise zu niedlich/fanatisch
+   - Rot: Zu romantisiert oder fanatisch ("schon als kleines Mädchen...")
+
+8. **Keine überflüssigen Frames oder Ankündigungen**
+   - Grün: Direkter Einstieg in Stories ohne Ankündigungen
+   - Gelb: Wenige überflüssige Frames
+   - Rot: Viele Ankündigungen wie "ich werde mal etwas ausholen"
+
+Das Feedback soll als HTML-formatierter String zurückgegeben werden mit farbigen Boxen.
 `;
 
   const systemMsg = `Du bist ein Bewertungsassistent für Hochzeitsdienstleister-Beratungen. 
+Erstelle detailliertes, strukturiertes Feedback in HTML-Format mit farbigen Boxen für jede Anforderung.
 Antworte immer als strikt gültiges JSON ohne zusätzlichen Text außerhalb des JSON-Objekts.
+
 ${evaluationCriteria}`;
 
   const userMsg = `
-Bewerte den folgenden Beratungstext gemäß den definierten Kriterien:
+Bewerte den folgenden Experten-Frame detailliert nach den 8 Anforderungen.
+
+Erstelle für jede Anforderung eine farbige HTML-Box mit:
+1. Anforderungs-Titel
+2. Status-Bewertung (✅ Grün / ⚠️ Gelb / ❌ Rot)  
+3. Konkrete Zitate aus dem Text als Belege
+4. Bei Gelb/Rot: Spezifische Verbesserungsvorschläge
 
 🧠 Experten-Frame:
 ${frame}
@@ -64,7 +110,12 @@ ${beratung}` : ''}
 
 onlyFrame=${onlyFrame}
 
-Antworte ausschließlich als JSON-Objekt.
+Gib das Feedback als HTML-String in JSON zurück:
+{
+  "frameFeedback": "<div class='feedback-container'>HTML mit 8 farbigen Boxen für jede Anforderung</div>",
+  "methodeFeedback": "...",
+  "beratungFeedback": "..."
+}
 `.trim();
 
   try {
