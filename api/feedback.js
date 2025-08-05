@@ -27,77 +27,32 @@ export default async function handler(req, res) {
   const evaluationCriteria = `
 Du bewertest Experten-Frames basierend auf 8 Muss-Anforderungen. 
 
-Für jede Anforderung erstellst du eine farbige Box:
-- GRÜN (✅): Anforderung voll erfüllt
-- GELB (⚠️): Anforderung erfüllt, aber verbesserungsfähig  
-- ROT (❌): Anforderung nicht oder nur teilweise erfüllt
-
-STRUKTUR für jede Box:
-1. Anforderung (immer gleiche Bezeichnung)
-2. Status-Bewertung mit Begründung
-3. Konkrete Zitate aus dem Text als Belege
-4. Bei Gelb/Rot: Spezifische Verbesserungsvorschläge mit Positiv-Beispielen
+Für jede Anforderung erstellst du eine Bewertung:
+- STATUS: ERFÜLLT / TEILWEISE / NICHT_ERFÜLLT
+- BEGRÜNDUNG: Warum dieser Status?
+- ZITATE: Konkrete Textstellen als Belege
+- VERBESSERUNG: Was kann besser gemacht werden? (nur bei TEILWEISE/NICHT_ERFÜLLT)
 
 Die 8 Anforderungen:
 
 1. **Länge: 500-800 Wörter** 
-   - Grün: 500-800 Wörter
-   - Gelb: 400-499 oder 801-900 Wörter  
-   - Rot: unter 400 oder über 900 Wörter
-
 2. **Storytelling statt oberflächlicher Aufzählung**
-   - Grün: 1-3 detaillierte Stories mit klaren Situationsbeschreibungen
-   - Gelb: Stories vorhanden, aber noch zu oberflächlich
-   - Rot: Nur Aufzählungen ohne echte Stories
-
 3. **Keine chronologische Erzählung des Werdegangs**
-   - Grün: Spezifische Momente/Situationen werden herausgepickt
-   - Gelb: Teilweise chronologisch, aber auch spezifische Momente
-   - Rot: Rein chronologische Abarbeitung des Werdegangs
-
 4. **Begründung der Expertise mit Experten-Merkmalen**
-   - Experten-Merkmale: Klare Meinung, selbstbewusstes Sprechen, Gamechanger-Strategien, Status Quo hinterfragen, gegen den Strom schwimmen
-   - Grün: Mehrere Experten-Merkmale klar erkennbar
-   - Gelb: Einige Experten-Merkmale vorhanden
-   - Rot: Kaum echte Experten-Merkmale erkennbar
-
 5. **Natürlicher Gesprächston (gesprochenes Wort)**
-   - Grün: Klingt wie natürliche Unterhaltung
-   - Gelb: Überwiegend natürlich, aber teilweise zu geschrieben
-   - Rot: Zu geleckt/geschrieben, nicht wie gesprochenes Wort
-
 6. **Integration negativer Erfahrungen/Learnings**
-   - Grün: Negative Erfahrungen werden als Lernmomente genutzt
-   - Gelb: Negative Aspekte erwähnt, aber Lerneffekt nicht klar
-   - Rot: Keine negativen Erfahrungen/Learnings erwähnt
-
 7. **Professionelle Tonalität ohne Romantisierung**
-   - Grün: Professionell ohne Fanatismus oder Romantisierung
-   - Gelb: Überwiegend professionell, aber teilweise zu niedlich/fanatisch
-   - Rot: Zu romantisiert oder fanatisch ("schon als kleines Mädchen...")
-
 8. **Keine überflüssigen Frames oder Ankündigungen**
-   - Grün: Direkter Einstieg in Stories ohne Ankündigungen
-   - Gelb: Wenige überflüssige Frames
-   - Rot: Viele Ankündigungen wie "ich werde mal etwas ausholen"
 
-Das Feedback soll als HTML-formatierter String zurückgegeben werden mit farbigen Boxen.
+WICHTIG: Antworte NUR mit einem JSON-Objekt, kein zusätzlicher Text!
 `;
 
   const systemMsg = `Du bist ein Bewertungsassistent für Hochzeitsdienstleister-Beratungen. 
-Erstelle detailliertes, strukturiertes Feedback in HTML-Format mit farbigen Boxen für jede Anforderung.
-Antworte immer als strikt gültiges JSON ohne zusätzlichen Text außerhalb des JSON-Objekts.
-
+Antworte immer nur als gültiges JSON ohne zusätzlichen Text.
 ${evaluationCriteria}`;
 
   const userMsg = `
-Bewerte den folgenden Experten-Frame detailliert nach den 8 Anforderungen.
-
-Erstelle für jede Anforderung eine farbige HTML-Box mit:
-1. Anforderungs-Titel
-2. Status-Bewertung (✅ Grün / ⚠️ Gelb / ❌ Rot)  
-3. Konkrete Zitate aus dem Text als Belege
-4. Bei Gelb/Rot: Spezifische Verbesserungsvorschläge
+Bewerte den folgenden Experten-Frame nach den 8 Anforderungen.
 
 🧠 Experten-Frame:
 ${frame}
@@ -108,13 +63,17 @@ ${methode}
 💬 Beratung:
 ${beratung}` : ''}
 
-onlyFrame=${onlyFrame}
+Bewerte jede Anforderung mit:
+- STATUS: ERFÜLLT/TEILWEISE/NICHT_ERFÜLLT  
+- BEGRÜNDUNG: Kurze Erklärung
+- ZITATE: Relevante Textstellen
+- VERBESSERUNG: Konkrete Tipps (bei TEILWEISE/NICHT_ERFÜLLT)
 
-Gib das Feedback als HTML-String in JSON zurück:
+Antworte NUR als JSON:
 {
-  "frameFeedback": "<div class='feedback-container'>HTML mit 8 farbigen Boxen für jede Anforderung</div>",
-  "methodeFeedback": "...",
-  "beratungFeedback": "..."
+  "frameFeedback": "Detaillierte strukturierte Bewertung aller 8 Anforderungen",
+  "methodeFeedback": "",
+  "beratungFeedback": ""
 }
 `.trim();
 
@@ -161,17 +120,30 @@ Gib das Feedback als HTML-String in JSON zurück:
       const claudeResponse = JSON.parse(rawText);
       const content = claudeResponse.content?.[0]?.text || rawText;
       
-      // Versuche JSON aus dem Inhalt zu extrahieren
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        parsed = JSON.parse(jsonMatch[0]);
-      } else {
-        parsed = JSON.parse(content);
+      console.log("Claude Content:", content.substring(0, 300) + "...");
+      
+      // Versuche JSON aus dem Inhalt zu extrahieren - robustere Methode
+      let jsonStr = content;
+      
+      // Falls der Content nicht direkt JSON ist, versuche es zu finden
+      if (!content.trim().startsWith('{')) {
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          jsonStr = jsonMatch[0];
+        } else {
+          throw new Error("Kein JSON gefunden");
+        }
       }
+      
+      parsed = JSON.parse(jsonStr);
+      
     } catch (parseError) {
       console.error("JSON Parse Fehler:", parseError);
-      return res.status(500).json({
-        frameFeedback: "Fehler beim Parsen der Claude-Antwort. Versuchen Sie es erneut.",
+      console.error("Raw content:", rawText.substring(0, 1000));
+      
+      // Fallback: Einfaches Text-Feedback zurückgeben
+      return res.status(200).json({
+        frameFeedback: "Technischer Fehler beim Parsen der Antwort. Hier ist die Roh-Antwort:\n\n" + rawText.substring(0, 2000),
         methodeFeedback: "",
         beratungFeedback: ""
       });
