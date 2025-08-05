@@ -7,34 +7,34 @@ export default async function handler(req, res) {
   const { frame } = req.body;
 
   const prompt = `
-Du bist ein Business-Coach für Hochzeitsdienstleister. 
-Bewerte den folgenden Text, genannt „Expertenframe“, nach festen Kriterien. 
-Antworte im folgenden JSON-Format:
+Du bewertest den folgenden Text, genannt „Expertenframe“, nach festen Kriterien für ein Beratungsgespräch mit Hochzeitsdienstleistern. 
+
+Antworte ausschließlich in folgendem JSON-Format:
 
 {
-  "frameFeedback": "konkretes Feedback zum Expertenframe",
+  "frameFeedback": "Konkretes, wohlwollendes Feedback zum Expertenframe.",
   "methodeFeedback": "",
   "beratungFeedback": ""
 }
 
-Kriterien:
-- Ist der Text 500–800 Wörter lang?
-- Wird mit Storytelling gearbeitet statt reiner Aufzählung?
-- Werden einzelne Erfahrungen statt chronologischer Lebenslauf erzählt?
-- Werden echte Expertenmerkmale sichtbar? (klare Meinung, Gamechanger-Strategien etc.)
-- Ist der Stil gesprochene Sprache?
-- Werden auch negative Erfahrungen geteilt?
-- Wird die eigene Arbeit nicht romantisiert?
-- Gibt es unnötige Einleitungen („ich erzähl mal etwas von mir“)?
+Bewerte die folgenden Kriterien:
+- Länge (500–800 Wörter)
+- Storytelling statt Aufzählung
+- keine chronologische Biografie
+- Experten-Merkmale (klare Meinung, Gamechanger-Strategien etc.)
+- natürlicher Ton (wie gesprochen)
+- auch negative Erfahrungen enthalten
+- keine Romantisierung
+- keine überflüssigen Einleitungen
 
-Hier ist der Text:
+Hier ist der Expertenframe:
 ====================
 ${frame}
 ====================
 `;
 
   try {
-    const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "x-api-key": process.env.CLAUDE_API_KEY,
@@ -48,8 +48,16 @@ ${frame}
       })
     });
 
-    const data = await claudeRes.json();
-    const raw = data?.content?.[0]?.text || "";
+    const data = await response.json();
+
+    const raw = data?.content?.[0]?.text;
+    if (!raw) {
+      return res.status(500).json({
+        frameFeedback: "Claude hat keine Antwort geliefert.",
+        methodeFeedback: "",
+        beratungFeedback: ""
+      });
+    }
 
     const match = raw.match(/\{[\s\S]*\}/);
     if (!match) {
@@ -68,7 +76,7 @@ ${frame}
       beratungFeedback: parsed.beratungFeedback || ""
     });
   } catch (error) {
-    console.error("API-Fehler:", error);
+    console.error("Claude API Fehler:", error);
     res.status(500).json({
       frameFeedback: "Fehler bei der Verarbeitung: " + error.message,
       methodeFeedback: "",
