@@ -6,14 +6,37 @@ export default async function handler(req, res) {
 
   const { frame, methode, beratung, onlyFrame } = req.body;
 
-  const prompt = `
+const prompt = `
 Du bewertest den „Expertenframe“-Abschnitt eines Beratungsgesprächs für Hochzeitsdienstleister.
-Jede Anforderung ist eine Muss-Anforderung. Gib für jede nicht erfüllte Anforderung spezifisches Feedback im JSON-Format.
+
+Jede der folgenden Anforderungen ist eine Muss-Anforderung. Gib für jede **nicht erfüllte** Anforderung **konkretes, wohlwollendes Feedback** mit Verbesserungsvorschlägen.
+
+Gib deine Antwort **im folgenden JSON-Format** zurück:
+
+{
+  "frameFeedback": "Dein Feedbacktext hier",
+  "methodeFeedback": "",
+  "beratungFeedback": ""
+}
+
+### Muss-Anforderungen:
+
+1. Länge: 500–800 Wörter
+2. Storytelling statt Aufzählung
+3. Keine chronologische Erzählung des Werdegangs
+4. Experten-Merkmale: klare Meinung, Gamechanger-Strategien, gegen den Strom
+5. Natürlicher Gesprächston
+6. Integration negativer Erfahrungen
+7. Keine Romantisierung des Berufs
+8. Keine überflüssigen Ankündigungen
+
+Hier ist der Expertenframe:
 
 ====================
 ${frame}
 ====================
 `;
+
 
   try {
     const apiResponse = await fetch("https://api.anthropic.com/v1/messages", {
